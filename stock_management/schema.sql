@@ -1,8 +1,6 @@
 -- Online Stock Management System
 -- Database: stock_management_db
 
-CREATE DATABASE IF NOT EXISTS `stock_management_db` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE `stock_management_db`;
 
 -- Users Table
 CREATE TABLE IF NOT EXISTS `users` (

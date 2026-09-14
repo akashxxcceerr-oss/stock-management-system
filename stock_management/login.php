@@ -1,6 +1,6 @@
 <?php
 /**
- * System Login Page
+ * System Login Page — v2.0 Redesign
  */
 
 require_once __DIR__ . '/config/constants.php';
@@ -65,47 +65,76 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <i class="fa-solid fa-boxes-stacked"></i>
         </div>
         <h2>StockMaster Pro</h2>
-        <p style="font-size:13px; color:var(--text-muted); margin-top:4px;">Enterprise Inventory & Asset Management</p>
+        <p style="font-size:13px; color:var(--text-muted); margin-top:6px;">Enterprise Inventory & Asset Management</p>
     </div>
 
     <?php if ($error): ?>
-        <div class="alert alert-danger">
+        <div class="alert alert-danger" style="margin-bottom:20px;">
             <i class="fa-solid fa-triangle-exclamation"></i> <?= e($error) ?>
         </div>
     <?php endif; ?>
 
-    <form method="POST" action="">
+    <form method="POST" action="" id="loginForm">
         <div class="form-group">
-            <label class="form-label"><i class="fa-solid fa-user"></i> Username</label>
-            <input type="text" name="username" class="form-control" placeholder="Enter your username" value="admin" required autofocus>
+            <label class="form-label"><i class="fa-solid fa-user" style="color:var(--primary);"></i> Username</label>
+            <input type="text" id="usernameInput" name="username" class="form-control" placeholder="Enter username" value="admin" required autofocus autocomplete="username">
         </div>
 
-        <div class="form-group">
-            <label class="form-label"><i class="fa-solid fa-key"></i> Password</label>
-            <input type="password" name="password" class="form-control" placeholder="Enter your password" value="admin123" required>
+        <div class="form-group" style="position:relative;">
+            <label class="form-label"><i class="fa-solid fa-key" style="color:var(--primary);"></i> Password</label>
+            <div style="position:relative;">
+                <input type="password" id="passwordInput" name="password" class="form-control" placeholder="Enter password" value="admin123" required autocomplete="current-password" style="padding-right:42px;">
+                <button type="button" onclick="togglePasswordVisibility()" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:14px; padding:4px;" title="Toggle visibility">
+                    <i class="fa-regular fa-eye" id="toggleIcon"></i>
+                </button>
+            </div>
         </div>
 
-        <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; padding:14px; font-size:15px;">
-            Sign In to Control Center <i class="fa-solid fa-right-to-bracket"></i>
+        <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; padding:13px; font-size:15px; margin-top:10px;">
+            Sign In to Dashboard <i class="fa-solid fa-arrow-right" style="margin-left:6px;"></i>
         </button>
     </form>
 
-    <div style="margin-top: 28px; padding: 16px; background: rgba(31, 41, 61, 0.6); border-radius: var(--radius-sm); border: 1px solid var(--border-color); font-size: 12px;">
-        <div style="font-weight:700; color:var(--accent-teal); margin-bottom:8px;"><i class="fa-solid fa-shield-halved"></i> Demo Login Credentials:</div>
-        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-            <span><strong style="color:var(--text-main);">Administrator:</strong> admin</span>
-            <span style="color:var(--text-muted);">Pass: admin123</span>
+    <!-- Quick Demo Credential Pills -->
+    <div style="margin-top: 24px; padding: 16px; background: rgba(15, 20, 38, 0.85); border-radius: var(--radius-md); border: 1px solid var(--border-color); font-size: 12px;">
+        <div style="font-weight:700; color:var(--text-secondary); margin-bottom:10px; display:flex; align-items:center; justify-content:space-between;">
+            <span><i class="fa-solid fa-bolt" style="color:var(--warning);"></i> 1-Click Demo Login:</span>
+            <span style="font-size:11px; color:var(--text-muted);">Click to fill</span>
         </div>
-        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-            <span><strong style="color:var(--text-main);">Manager:</strong> manager</span>
-            <span style="color:var(--text-muted);">Pass: manager123</span>
-        </div>
-        <div style="display:flex; justify-content:space-between;">
-            <span><strong style="color:var(--text-main);">Staff:</strong> staff</span>
-            <span style="color:var(--text-muted);">Pass: staff123</span>
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="fillCreds('admin', 'admin123')" style="justify-content:center; font-size:11px; padding:6px 4px;">
+                <i class="fa-solid fa-shield-halved" style="color:var(--primary);"></i> Admin
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="fillCreds('manager', 'manager123')" style="justify-content:center; font-size:11px; padding:6px 4px;">
+                <i class="fa-solid fa-briefcase" style="color:var(--accent-cyan);"></i> Manager
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="fillCreds('staff', 'staff123')" style="justify-content:center; font-size:11px; padding:6px 4px;">
+                <i class="fa-solid fa-user-tag" style="color:var(--accent-teal);"></i> Staff
+            </button>
         </div>
     </div>
 </div>
+
+<script>
+function togglePasswordVisibility() {
+    const pwd = document.getElementById('passwordInput');
+    const icon = document.getElementById('toggleIcon');
+    if (pwd.type === 'password') {
+        pwd.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        pwd.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+
+function fillCreds(username, password) {
+    document.getElementById('usernameInput').value = username;
+    document.getElementById('passwordInput').value = password;
+}
+</script>
 
 </body>
 </html>

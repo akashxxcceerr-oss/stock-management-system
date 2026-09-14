@@ -1,6 +1,6 @@
 <?php
 /**
- * Main Dashboard — Enterprise Control Center
+ * Main Dashboard — Enterprise Control Center v2.0
  */
 
 $pageTitle = 'Control Center Dashboard';
@@ -42,19 +42,31 @@ $lowStockStmt = $db->query("
     JOIN categories c ON p.category_id = c.id
     WHERE p.status = 'active' AND p.quantity <= p.minimum_stock_level
     ORDER BY p.quantity ASC
+    LIMIT 6
 ");
 $lowStockItems = $lowStockStmt->fetchAll();
+
+// Time-based greeting
+$hour = (int)date('G');
+if ($hour < 12) {
+    $greeting = "Good morning";
+} elseif ($hour < 18) {
+    $greeting = "Good afternoon";
+} else {
+    $greeting = "Good evening";
+}
 ?>
 
-<div class="top-bar">
-    <div class="page-header">
-        <h1>Dashboard Overview</h1>
-        <p>Real-time enterprise inventory intelligence & double-entry ledger analytics</p>
+<!-- Welcome & Overview Banner -->
+<div class="welcome-banner">
+    <div>
+        <h2><?= $greeting ?>, <?= e($currentUser['name']) ?> 👋</h2>
+        <p>Enterprise inventory tracking, audit trail & valuation ledger are fully synchronized.</p>
     </div>
     <div class="quick-actions">
         <a href="<?= BASE_URL ?>/stock_in.php" class="btn btn-primary"><i class="fa-solid fa-arrow-down-to-bracket"></i> Stock In</a>
         <a href="<?= BASE_URL ?>/stock_out.php" class="btn btn-secondary"><i class="fa-solid fa-arrow-up-from-bracket"></i> Stock Out</a>
-        <a href="<?= BASE_URL ?>/stock_assign.php" class="btn btn-success"><i class="fa-solid fa-handshake-angle"></i> Assign Asset</a>
+        <a href="<?= BASE_URL ?>/stock_assign.php" class="btn btn-secondary"><i class="fa-solid fa-handshake-angle"></i> Assign Asset</a>
     </div>
 </div>
 
@@ -62,47 +74,51 @@ $lowStockItems = $lowStockStmt->fetchAll();
 <div class="grid-stats">
     <div class="stat-card">
         <div class="stat-header">
-            <span class="stat-title">Total Active Products</span>
-            <span class="stat-icon" style="color:var(--primary);"><i class="fa-solid fa-boxes-stacked"></i></span>
+            <span class="stat-title">Catalog SKUs</span>
+            <div class="stat-icon" style="color:var(--primary);"><i class="fa-solid fa-boxes-stacked"></i></div>
         </div>
         <div class="stat-value"><?= number_format($totalProducts) ?></div>
-        <div class="stat-meta">Active catalog SKUs</div>
+        <div class="stat-meta"><i class="fa-solid fa-circle-check" style="color:var(--accent-teal); font-size:10px;"></i> Active products in registry</div>
     </div>
 
     <div class="stat-card accent-teal">
         <div class="stat-header">
             <span class="stat-title">Total Inventory Value</span>
-            <span class="stat-icon" style="color:var(--accent-teal);"><i class="fa-solid fa-wallet"></i></span>
+            <div class="stat-icon" style="color:var(--accent-teal);"><i class="fa-solid fa-wallet"></i></div>
         </div>
         <div class="stat-value"><?= format_currency($totalValue) ?></div>
-        <div class="stat-meta">Asset valuation at cost</div>
+        <div class="stat-meta"><i class="fa-solid fa-chart-line" style="color:var(--accent-teal); font-size:10px;"></i> Valuation based on latest cost</div>
     </div>
 
     <div class="stat-card accent-warning">
         <div class="stat-header">
-            <span class="stat-title">Low Stock Alerts</span>
-            <span class="stat-icon" style="color:var(--warning);"><i class="fa-solid fa-triangle-exclamation"></i></span>
+            <span class="stat-title">Low Stock Reorders</span>
+            <div class="stat-icon" style="color:var(--warning);"><i class="fa-solid fa-triangle-exclamation"></i></div>
         </div>
         <div class="stat-value"><?= number_format($lowStockCount) ?></div>
-        <div class="stat-meta">At or below reorder threshold</div>
+        <div class="stat-meta"><i class="fa-solid fa-bell" style="color:var(--warning); font-size:10px;"></i> At or below minimum threshold</div>
     </div>
 
-    <div class="stat-card accent-danger">
+    <div class="stat-card accent-cyan">
         <div class="stat-header">
             <span class="stat-title">Assets Under Custody</span>
-            <span class="stat-icon" style="color:var(--danger);"><i class="fa-solid fa-user-shield"></i></span>
+            <div class="stat-icon" style="color:var(--accent-cyan);"><i class="fa-solid fa-user-shield"></i></div>
         </div>
         <div class="stat-value"><?= number_format($assignedAssetsCount) ?></div>
-        <div class="stat-meta">Assigned to employees</div>
+        <div class="stat-meta"><i class="fa-solid fa-arrow-right-arrow-left" style="color:var(--accent-cyan); font-size:10px;"></i> Deployed with staff custody</div>
     </div>
 </div>
 
-<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+<!-- Two-Column Operational Layout -->
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; align-items: start;">
     <!-- Recent Transactions Table -->
     <div class="card">
         <div class="card-header">
-            <div class="card-title"><i class="fa-solid fa-clock-rotate-left"></i> Recent Inventory Ledger</div>
-            <a href="<?= BASE_URL ?>/transactions.php" class="btn btn-sm btn-secondary">View Full Ledger</a>
+            <div>
+                <div class="card-title"><i class="fa-solid fa-clock-rotate-left" style="color:var(--primary);"></i> Recent Activity Ledger</div>
+                <div class="card-subtitle">Latest movements across warehouses and employees</div>
+            </div>
+            <a href="<?= BASE_URL ?>/transactions.php" class="btn btn-sm btn-secondary">Full Ledger <i class="fa-solid fa-arrow-right" style="font-size:11px;"></i></a>
         </div>
         <div class="table-responsive">
             <table class="data-table">
@@ -111,38 +127,66 @@ $lowStockItems = $lowStockStmt->fetchAll();
                         <th>Reference</th>
                         <th>Type</th>
                         <th>Product</th>
-                        <th>Qty</th>
+                        <th>Delta</th>
                         <th>Balance</th>
-                        <th>Date & Time</th>
+                        <th>Timestamp</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (empty($recentTx)): ?>
-                        <tr><td colspan="6" style="text-align:center; color:var(--text-muted);">No transaction activity recorded yet.</td></tr>
+                        <tr>
+                            <td colspan="6">
+                                <div class="empty-state">
+                                    <i class="fa-solid fa-receipt"></i>
+                                    <h3>No transactions yet</h3>
+                                    <p>Incoming and outgoing stock movements will appear here automatically.</p>
+                                </div>
+                            </td>
+                        </tr>
                     <?php else: ?>
                         <?php foreach ($recentTx as $tx): ?>
                             <tr>
-                                <td><code style="color:var(--accent-cyan);"><?= e($tx['reference_number']) ?></code></td>
+                                <td>
+                                    <span class="badge badge-neutral" style="font-family:monospace; letter-spacing:0.5px;"><?= e($tx['reference_number']) ?></span>
+                                </td>
                                 <td>
                                     <?php
                                     $badgeClass = 'badge-info';
-                                    if ($tx['transaction_type'] === 'STOCK_IN') $badgeClass = 'badge-success';
-                                    elseif ($tx['transaction_type'] === 'STOCK_OUT') $badgeClass = 'badge-warning';
-                                    elseif ($tx['transaction_type'] === 'ASSIGNMENT') $badgeClass = 'badge-info';
-                                    elseif ($tx['transaction_type'] === 'RETURN') $badgeClass = 'badge-success';
-                                    elseif ($tx['transaction_type'] === 'DAMAGE') $badgeClass = 'badge-danger';
+                                    $iconClass = 'fa-arrow-right-arrow-left';
+                                    if ($tx['transaction_type'] === 'STOCK_IN') {
+                                        $badgeClass = 'badge-success';
+                                        $iconClass = 'fa-arrow-down-to-bracket';
+                                    } elseif ($tx['transaction_type'] === 'STOCK_OUT') {
+                                        $badgeClass = 'badge-warning';
+                                        $iconClass = 'fa-arrow-up-from-bracket';
+                                    } elseif ($tx['transaction_type'] === 'ASSIGNMENT') {
+                                        $badgeClass = 'badge-info';
+                                        $iconClass = 'fa-handshake-angle';
+                                    } elseif ($tx['transaction_type'] === 'RETURN') {
+                                        $badgeClass = 'badge-success';
+                                        $iconClass = 'fa-rotate-left';
+                                    } elseif ($tx['transaction_type'] === 'DAMAGE') {
+                                        $badgeClass = 'badge-danger';
+                                        $iconClass = 'fa-triangle-exclamation';
+                                    }
                                     ?>
-                                    <span class="badge <?= $badgeClass ?>"><?= e($tx['transaction_type']) ?></span>
+                                    <span class="badge <?= $badgeClass ?>"><i class="fa-solid <?= $iconClass ?>" style="margin-right:4px;"></i><?= e($tx['transaction_type']) ?></span>
                                 </td>
                                 <td>
-                                    <strong><?= e($tx['product_name']) ?></strong>
-                                    <div style="font-size:11px; color:var(--text-muted);"><?= e($tx['product_code']) ?></div>
+                                    <strong style="color:var(--text-main);"><?= e($tx['product_name']) ?></strong>
+                                    <div style="font-size:11px; color:var(--text-muted); font-family:monospace;"><?= e($tx['product_code']) ?></div>
                                 </td>
-                                <td style="font-weight:700; color: <?= $tx['quantity'] > 0 ? '#34d399' : '#f87171' ?>;">
-                                    <?= ($tx['quantity'] > 0 ? '+' : '') . $tx['quantity'] ?>
+                                <td>
+                                    <span style="font-weight:700; font-variant-numeric:tabular-nums; color: <?= $tx['quantity'] > 0 ? 'var(--accent-teal)' : 'var(--danger)' ?>;">
+                                        <?= ($tx['quantity'] > 0 ? '+' : '') . $tx['quantity'] ?>
+                                    </span>
                                 </td>
-                                <td style="font-weight:600;"><?= number_format($tx['balance_after']) ?></td>
-                                <td style="font-size:12px; color:var(--text-muted);"><?= format_date($tx['transaction_date']) ?></td>
+                                <td>
+                                    <span style="font-weight:600; font-variant-numeric:tabular-nums;"><?= number_format($tx['balance_after']) ?></span>
+                                </td>
+                                <td>
+                                    <span style="font-size:12px; color:var(--text-muted);"><?= format_date($tx['transaction_date']) ?></span>
+                                </td>
                             </tr>
                         <?php endforeach; ?>
                     <?php endif; ?>
@@ -151,27 +195,35 @@ $lowStockItems = $lowStockStmt->fetchAll();
         </div>
     </div>
 
-    <!-- Low Stock Sidebar Alert -->
+    <!-- Low Stock Sidebar Alert Card -->
     <div class="card">
         <div class="card-header">
-            <div class="card-title" style="color:var(--warning);"><i class="fa-solid fa-bell"></i> Reorder Alerts</div>
+            <div>
+                <div class="card-title" style="color:var(--warning);"><i class="fa-solid fa-bell"></i> Reorder Alerts</div>
+                <div class="card-subtitle">Items at critical levels</div>
+            </div>
+            <?php if (!empty($lowStockItems)): ?>
+                <a href="<?= BASE_URL ?>/stock_in.php" class="btn btn-xs btn-primary"><i class="fa-solid fa-plus"></i> Restock</a>
+            <?php endif; ?>
         </div>
+
         <?php if (empty($lowStockItems)): ?>
-            <div style="text-align:center; padding:20px; color:var(--accent-teal);">
-                <i class="fa-solid fa-circle-check" style="font-size:32px; margin-bottom:8px; display:block;"></i>
-                All stock levels are healthy!
+            <div class="empty-state" style="padding:24px 12px;">
+                <i class="fa-solid fa-circle-check" style="color:var(--accent-teal); font-size:36px;"></i>
+                <h3 style="margin-top:12px;">All Stock Healthy</h3>
+                <p>Every SKU is above its defined minimum replenishment threshold.</p>
             </div>
         <?php else: ?>
-            <div style="display:flex; flex-direction:column; gap:12px;">
+            <div style="display:flex; flex-direction:column; gap:10px;">
                 <?php foreach ($lowStockItems as $item): ?>
-                    <div style="padding:12px; background:rgba(245, 158, 11, 0.1); border:1px solid rgba(245, 158, 11, 0.2); border-radius:var(--radius-sm); display:flex; justify-content:space-between; align-items:center;">
+                    <div style="padding:12px 14px; background:rgba(245, 158, 11, 0.07); border:1px solid rgba(245, 158, 11, 0.2); border-radius:var(--radius-md); display:flex; justify-content:space-between; align-items:center; transition:var(--transition);" onmouseover="this.style.background='rgba(245, 158, 11, 0.12)'" onmouseout="this.style.background='rgba(245, 158, 11, 0.07)'">
                         <div>
                             <strong style="font-size:13px; color:var(--text-main); display:block;"><?= e($item['product_name']) ?></strong>
                             <span style="font-size:11px; color:var(--text-muted);"><?= e($item['category_name']) ?></span>
                         </div>
                         <div style="text-align:right;">
-                            <span class="badge badge-warning"><?= $item['quantity'] ?> Left</span>
-                            <div style="font-size:10px; color:var(--text-muted); margin-top:2px;">Min: <?= $item['minimum_stock_level'] ?></div>
+                            <span class="badge badge-warning" style="font-weight:700;"><?= $item['quantity'] ?> Left</span>
+                            <div style="font-size:10px; color:var(--text-muted); margin-top:3px;">Min: <?= $item['minimum_stock_level'] ?></div>
                         </div>
                     </div>
                 <?php endforeach; ?>
